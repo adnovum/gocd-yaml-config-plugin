@@ -43,6 +43,39 @@ public class MaterialTransformTest {
     }
 
     @Test
+    public void shouldTransformGitAutoUpdateOverrideDefaultToTrue() throws IOException {
+        try {
+            TransformConfig.setDefaultAutoUpdate(true);
+            testTransform("auto_update.git.not_set", "auto_update.git.true", defaultVersionForContext);
+        }
+        finally {
+            TransformConfig.setDefaultAutoUpdate(null);
+        }
+    }
+
+    @Test
+    public void shouldTransformGitAutoUpdateOverrideDefaultToFalse() throws IOException {
+        try {
+            TransformConfig.setDefaultAutoUpdate(false);
+            testTransform("auto_update.git.not_set", "auto_update.git.false", defaultVersionForContext);
+        }
+        finally {
+            TransformConfig.setDefaultAutoUpdate(null);
+        }
+    }
+
+    @Test
+    public void shouldTransformGitAutoUpdateInConfigPrecedence() throws IOException {
+        try {
+            TransformConfig.setDefaultAutoUpdate(false);
+            testTransform("auto_update.git.set_to_true", "auto_update.git.true", defaultVersionForContext);
+        }
+        finally {
+            TransformConfig.setDefaultAutoUpdate(null);
+        }
+    }
+
+    @Test
     public void shouldTransformGitWhenPlainPassword() throws IOException {
         testTransform("password.git", defaultVersionForContext);
     }

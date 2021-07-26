@@ -1,6 +1,7 @@
 package cd.go.plugin.config.yaml;
 
 import cd.go.plugin.config.yaml.transforms.RootTransform;
+import cd.go.plugin.config.yaml.transforms.TransformConfig;
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import com.thoughtworks.go.plugin.api.GoApplicationAccessor;
@@ -119,6 +120,7 @@ public class YamlConfigPlugin implements GoPlugin, ConfigRepoMessages {
     private GoPluginApiResponse handleParseContentRequest(GoPluginApiRequest request) {
         return handlingErrors(() -> {
             ParsedRequest parsed = ParsedRequest.parse(request);
+            updateTransformConfig(parsed);
 
             YamlConfigParser parser = new YamlConfigParser();
             Map<String, String> contents = parsed.getParam("contents");
@@ -132,9 +134,20 @@ public class YamlConfigPlugin implements GoPlugin, ConfigRepoMessages {
         });
     }
 
+    private void updateTransformConfig(ParsedRequest parsed) {
+        String defaultAutoUpdateStr = parsed.getConfigurationKey("default_auto_update");
+        if (defaultAutoUpdateStr == null) {
+            TransformConfig.setDefaultAutoUpdate(null);
+        }
+        else {
+            TransformConfig.setDefaultAutoUpdate(Boolean.valueOf(defaultAutoUpdateStr));
+        }
+    }
+
     private GoPluginApiResponse handlePipelineExportRequest(GoPluginApiRequest request) {
         return handlingErrors(() -> {
             ParsedRequest parsed = ParsedRequest.parse(request);
+            updateTransformConfig(parsed);
 
             Map<String, Object> pipeline = parsed.getParam("pipeline");
             String name = (String) pipeline.get("name");
@@ -151,6 +164,8 @@ public class YamlConfigPlugin implements GoPlugin, ConfigRepoMessages {
     private GoPluginApiResponse handleParseDirectoryRequest(GoPluginApiRequest request) {
         return handlingErrors(() -> {
             ParsedRequest parsed = ParsedRequest.parse(request);
+            updateTransformConfig(parsed);
+
             File baseDir = new File(parsed.getStringParam("directory"));
             String[] files = scanForConfigFiles(parsed, baseDir);
 

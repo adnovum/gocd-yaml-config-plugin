@@ -118,6 +118,9 @@ public class MaterialTransform extends ConfigurationTransform {
 
         addOptionalValue(materialdata, material, JSON_MATERIAL_SHALLOW_CLONE_FIELD, YAML_MATERIAL_SHALLOW_CLONE_FIELD);
         addOptionalValue(materialdata, material, JSON_MATERIAL_CHECK_EXTERNALS_FIELD, YAML_MATERIAL_CHECK_EXTERNALS_FIELD);
+        if (TransformConfig.getDefaultAutoUpdate() != null) {
+            materialdata.put(YAML_MATERIAL_AUTO_UPDATE_FIELD, TransformConfig.getDefaultAutoUpdate());
+        }
         addOptionalValue(materialdata, material, JSON_MATERIAL_AUTO_UPDATE_FIELD, YAML_MATERIAL_AUTO_UPDATE_FIELD);
 
         addOptionalValue(materialdata, material, JSON_MATERIAL_IGNORE_FOR_SCHEDULING_FIELD, YAML_MATERIAL_IGNORE_FOR_SCHEDULING_FIELD);
@@ -146,6 +149,9 @@ public class MaterialTransform extends ConfigurationTransform {
         material.addProperty(JSON_MATERIAL_NAME_FIELD, materialName);
         Map<String, Object> materialMap = (Map<String, Object>) entry.getValue();
         addOptionalString(material, materialMap, JSON_MATERIAL_TYPE_FIELD, YAML_MATERIAL_TYPE_FIELD);
+        if (TransformConfig.getDefaultAutoUpdate() != null) {
+            material.addProperty(JSON_MATERIAL_AUTO_UPDATE_FIELD, TransformConfig.getDefaultAutoUpdate());
+        }
         addOptionalBoolean(material, materialMap, JSON_MATERIAL_AUTO_UPDATE_FIELD, YAML_MATERIAL_AUTO_UPDATE_FIELD);
         addOptionalBoolean(material, materialMap, JSON_MATERIAL_SHALLOW_CLONE_FIELD, YAML_MATERIAL_SHALLOW_CLONE_FIELD);
         addOptionalBoolean(material, materialMap, JSON_MATERIAL_CHECK_EXTERNALS_FIELD, YAML_MATERIAL_CHECK_EXTERNALS_FIELD);

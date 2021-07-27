@@ -42,7 +42,8 @@ public class JsonObjectMatcher extends TypeSafeMatcher<JsonObject> {
             } else if (!field.getValue().equals(actual.get(field.getKey())))
                 return false;
         }
-        return true;
+        // Catch cases where actual has more entries than expected:
+        return this.expected.keySet().equals(actual.keySet());
     }
 
     private boolean equalToAnyOther(JsonElement thisItem, JsonArray otherArray) {

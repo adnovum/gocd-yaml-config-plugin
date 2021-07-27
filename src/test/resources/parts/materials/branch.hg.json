@@ -1,4 +1,6 @@
 {
+  "name":"hgMaterial1",
+  "type":"hg",
   "url": "repos/myhg",
   "branch": "feature"
 }

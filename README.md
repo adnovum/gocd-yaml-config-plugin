@@ -2,7 +2,7 @@
 
 # gocd-yaml-config-plugin
 
-[![Build Status](https://travis-ci.com/tomzo/gocd-yaml-config-plugin.svg?branch=master)](https://travis-ci.com/tomzo/gocd-yaml-config-plugin)
+[![CI](https://github.com/adnovum/gocd-yaml-config-plugin/actions/workflows/ci.yml/badge.svg)](https://github.com/adnovum/gocd-yaml-config-plugin/actions/workflows/ci.yml)
 
 [GoCD](https://www.gocd.org) plugin to keep **pipelines** and **environments**
 configuration in source-control in [YAML](http://www.yaml.org/).
@@ -1224,44 +1224,22 @@ If you have local java environment, then you may run all tests and create a read
 ./gradlew test jar
 ```
 
-## Building with docker and dojo
+## CI
 
-You don't need to setup java on your host, if you are fine with using docker and [Dojo](https://github.com/kudulab/dojo).
-This is actually how our GoCD builds the plugin:
-```sh
-dojo "gradle test jar"
-```
+All commits to any branch are built by Github Actions. See `.github/workflows` folder.
 
-Assuming you already have a working docker, On OSX, you can install with homebrew:
-```
-brew install kudulab/homebrew-dojo-osx/dojo
-```
-A manual install is another option:
-```sh
-version="0.9.0"
-# on Linux:
-wget -O /tmp/dojo https://github.com/kudulab/dojo/releases/download/${version}/dojo_linux_amd64
-# or on Darwin:
-# wget -O /tmp/dojo https://github.com/kudulab/dojo/releases/download/${version}/dojo_darwin_amd64
-chmod +x /tmp/dojo
-mv /tmp/dojo /usr/bin/dojo
-```
+## Release
 
-Then enter a docker container with java and gradle pre-installed, by running following command at the root of the project:
-```
-dojo
-```
+1. Adjust the version in the `build.gradle` and commit
+2. Create and push a `v<version>` (e.g. `v1.2.3`) tag.
 
-## Versioning
+    ```shell
+    TAG=v1.2.3
+    git tag $TAG
+    git push origin $TAG
+    ```
 
-We use semantic versioning.
-
-If you are submitting a new feature then please run a major version bump by
-```
-./tasks.sh set_version 0.X.0
-```
-
-If you are submitting a fix, then do not change any versions as patch bump is made right after each release.
+    Pushing the tag triggers the release stages of Github Actions. The release is automatically created and artifacts uploaded to it.
 
 ## Tests structure
 
@@ -1269,7 +1247,6 @@ There are [examples of yaml partials](src/test/resources/parts) and
  their resulting json to be sent to GoCD server. If something is not working right
  we can always add a new case covering exact yaml that user has and json that we
  expect on server side.
-
 
 # License
 

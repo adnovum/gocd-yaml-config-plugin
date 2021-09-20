@@ -2,9 +2,9 @@ name: CI
 
 on:
   push:
-    branches: [ adnovum_base ]
+    branches: [ master ]
   pull_request:
-    branches: [ adnovum_base ]
+    branches: [ master ]
 
 jobs:
   build:

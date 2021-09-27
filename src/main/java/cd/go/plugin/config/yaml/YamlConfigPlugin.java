@@ -1,7 +1,7 @@
 package cd.go.plugin.config.yaml;
 
 import cd.go.plugin.config.yaml.transforms.RootTransform;
-import cd.go.plugin.config.yaml.transforms.TransformConfig;
+import cd.go.plugin.config.yaml.transforms.DefaultOverrides;
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import com.thoughtworks.go.plugin.api.GoApplicationAccessor;
@@ -33,7 +33,7 @@ import static java.lang.String.format;
 @Extension
 public class YamlConfigPlugin implements GoPlugin, ConfigRepoMessages {
     private static final String DISPLAY_NAME_FILE_PATTERN = "Go YAML files pattern";
-    private static final String DISPLAY_NAME_DEFAULT_AUTO_UPDATE = "Default auto_update setting";
+    private static final String DISPLAY_NAME_DEFAULT_AUTO_UPDATE = "Default auto_update for Git materials";
     private static final String PLUGIN_ID = "yaml.config.plugin.adn";
     private static Logger LOGGER = Logger.getLoggerFor(YamlConfigPlugin.class);
 
@@ -79,6 +79,7 @@ public class YamlConfigPlugin implements GoPlugin, ConfigRepoMessages {
                 ensureConfigured();
                 return handleParseDirectoryRequest(request);
             case REQ_PIPELINE_EXPORT:
+                ensureConfigured();
                 return handlePipelineExportRequest(request);
             case REQ_GET_CAPABILITIES:
                 return success(gson.toJson(new Capabilities()));
@@ -119,12 +120,12 @@ public class YamlConfigPlugin implements GoPlugin, ConfigRepoMessages {
         if (null == settings) {
             settings = fetchPluginSettings();
         }
+        DefaultOverrides.setDefaultGitAutoUpdate(settings.getDefaultGitAutoUpdate());
     }
 
     private GoPluginApiResponse handleParseContentRequest(GoPluginApiRequest request) {
         return handlingErrors(() -> {
             ParsedRequest parsed = ParsedRequest.parse(request);
-            TransformConfig.setDefaultAutoUpdate(settings.getDefaultAutoUpdate());
 
             YamlConfigParser parser = new YamlConfigParser();
             Map<String, String> contents = parsed.getParam("contents");
@@ -141,7 +142,6 @@ public class YamlConfigPlugin implements GoPlugin, ConfigRepoMessages {
     private GoPluginApiResponse handlePipelineExportRequest(GoPluginApiRequest request) {
         return handlingErrors(() -> {
             ParsedRequest parsed = ParsedRequest.parse(request);
-            TransformConfig.setDefaultAutoUpdate(settings.getDefaultAutoUpdate());
 
             Map<String, Object> pipeline = parsed.getParam("pipeline");
             String name = (String) pipeline.get("name");
@@ -158,8 +158,6 @@ public class YamlConfigPlugin implements GoPlugin, ConfigRepoMessages {
     private GoPluginApiResponse handleParseDirectoryRequest(GoPluginApiRequest request) {
         return handlingErrors(() -> {
             ParsedRequest parsed = ParsedRequest.parse(request);
-            TransformConfig.setDefaultAutoUpdate(settings.getDefaultAutoUpdate());
-
             File baseDir = new File(parsed.getStringParam("directory"));
             String[] files = scanForConfigFiles(parsed, baseDir);
 

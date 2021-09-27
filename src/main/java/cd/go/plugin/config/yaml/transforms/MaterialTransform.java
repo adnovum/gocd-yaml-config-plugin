@@ -119,15 +119,9 @@ public class MaterialTransform extends ConfigurationTransform {
         addOptionalValue(materialdata, material, JSON_MATERIAL_SHALLOW_CLONE_FIELD, YAML_MATERIAL_SHALLOW_CLONE_FIELD);
         addOptionalValue(materialdata, material, JSON_MATERIAL_CHECK_EXTERNALS_FIELD, YAML_MATERIAL_CHECK_EXTERNALS_FIELD);
         addOptionalValue(materialdata, material, JSON_MATERIAL_AUTO_UPDATE_FIELD, YAML_MATERIAL_AUTO_UPDATE_FIELD);
-        if (TransformConfig.getDefaultAutoUpdate() != null && "git".equals(materialType)) {
-            Boolean gitAutoUpdate = (Boolean) materialdata.get(YAML_MATERIAL_AUTO_UPDATE_FIELD);
-            if (TransformConfig.getDefaultAutoUpdate().equals(gitAutoUpdate)) {
-                materialdata.remove(YAML_MATERIAL_AUTO_UPDATE_FIELD);
-            }
-        }
-
         addOptionalValue(materialdata, material, JSON_MATERIAL_IGNORE_FOR_SCHEDULING_FIELD, YAML_MATERIAL_IGNORE_FOR_SCHEDULING_FIELD);
 
+        DefaultOverrides.overrideGitMaterialAutoUpdateInverse(materialdata);
 
         // copy all other members
         for (Map.Entry<String, Object> materialProp : material.entrySet()) {
@@ -213,12 +207,7 @@ public class MaterialTransform extends ConfigurationTransform {
                 material.addProperty(materialProp.getKey(), (String) materialProp.getValue());
         }
 
-        if (TransformConfig.getDefaultAutoUpdate() != null &&
-                material.has(JSON_MATERIAL_TYPE_FIELD) &&
-                material.get(JSON_MATERIAL_TYPE_FIELD).getAsString().equals("git") &&
-                !material.has(JSON_MATERIAL_AUTO_UPDATE_FIELD)) {
-            material.addProperty(JSON_MATERIAL_AUTO_UPDATE_FIELD, TransformConfig.getDefaultAutoUpdate());
-        }
+        DefaultOverrides.overrideGitMaterialAutoUpdate(material);
 
         return material;
     }

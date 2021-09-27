@@ -11,7 +11,7 @@ class PluginSettings {
 
     private String filePattern;
 
-    private Boolean defaultAutoUpdate;
+    private Boolean defaultGitAutoUpdate;
 
     PluginSettings() {
     }
@@ -25,7 +25,7 @@ class PluginSettings {
         PluginSettings settings = new PluginSettings();
         settings.filePattern = raw.get(PLUGIN_SETTINGS_FILE_PATTERN);
         String defaultAutoUpdateVal = raw.get(PLUGIN_SETTINGS_DEFAULT_AUTO_UPDATE);
-        settings.defaultAutoUpdate = defaultAutoUpdateVal == null || defaultAutoUpdateVal.isBlank() ? null :
+        settings.defaultGitAutoUpdate = defaultAutoUpdateVal == null || defaultAutoUpdateVal.isBlank() ? null :
                 Boolean.valueOf(defaultAutoUpdateVal);
 
         return settings;
@@ -35,7 +35,7 @@ class PluginSettings {
         return filePattern;
     }
 
-    Boolean getDefaultAutoUpdate() {
-        return defaultAutoUpdate;
+    Boolean getDefaultGitAutoUpdate() {
+        return defaultGitAutoUpdate;
     }
 }

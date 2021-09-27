@@ -45,33 +45,33 @@ public class MaterialTransformTest {
     @Test
     public void shouldTransformGitAutoUpdateOverrideDefaultToTrue() throws IOException {
         try {
-            TransformConfig.setDefaultAutoUpdate(true);
+            DefaultOverrides.setDefaultGitAutoUpdate(true);
             testTransform("auto_update.git.not_set", "auto_update.git.true", defaultVersionForContext);
         }
         finally {
-            TransformConfig.setDefaultAutoUpdate(null);
+            DefaultOverrides.setDefaultGitAutoUpdate(null);
         }
     }
 
     @Test
     public void shouldTransformGitAutoUpdateOverrideDefaultToFalse() throws IOException {
         try {
-            TransformConfig.setDefaultAutoUpdate(false);
+            DefaultOverrides.setDefaultGitAutoUpdate(false);
             testTransform("auto_update.git.not_set", "auto_update.git.false", defaultVersionForContext);
         }
         finally {
-            TransformConfig.setDefaultAutoUpdate(null);
+            DefaultOverrides.setDefaultGitAutoUpdate(null);
         }
     }
 
     @Test
     public void shouldTransformGitAutoUpdateInConfigPrecedence() throws IOException {
         try {
-            TransformConfig.setDefaultAutoUpdate(false);
+            DefaultOverrides.setDefaultGitAutoUpdate(false);
             testTransform("auto_update.git.set_to_true", "auto_update.git.true", defaultVersionForContext);
         }
         finally {
-            TransformConfig.setDefaultAutoUpdate(null);
+            DefaultOverrides.setDefaultGitAutoUpdate(null);
         }
     }
 

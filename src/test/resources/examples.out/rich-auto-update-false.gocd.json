@@ -22,7 +22,8 @@
           "name": "mygit",
           "type": "git",
           "url": "http://my.example.org/mygit.git",
-          "branch": "ci"
+          "branch": "ci",
+          "auto_update": false
         },
         {
           "name": "upstream",

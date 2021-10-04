@@ -119,9 +119,9 @@ public class MaterialTransform extends ConfigurationTransform {
         addOptionalValue(materialdata, material, JSON_MATERIAL_SHALLOW_CLONE_FIELD, YAML_MATERIAL_SHALLOW_CLONE_FIELD);
         addOptionalValue(materialdata, material, JSON_MATERIAL_CHECK_EXTERNALS_FIELD, YAML_MATERIAL_CHECK_EXTERNALS_FIELD);
         addOptionalValue(materialdata, material, JSON_MATERIAL_AUTO_UPDATE_FIELD, YAML_MATERIAL_AUTO_UPDATE_FIELD);
-
         addOptionalValue(materialdata, material, JSON_MATERIAL_IGNORE_FOR_SCHEDULING_FIELD, YAML_MATERIAL_IGNORE_FOR_SCHEDULING_FIELD);
 
+        DefaultOverrides.overrideGitMaterialAutoUpdateInverse(materialdata);
 
         // copy all other members
         for (Map.Entry<String, Object> materialProp : material.entrySet()) {
@@ -206,6 +206,9 @@ public class MaterialTransform extends ConfigurationTransform {
             if (materialProp.getValue() instanceof String)
                 material.addProperty(materialProp.getKey(), (String) materialProp.getValue());
         }
+
+        DefaultOverrides.overrideGitMaterialAutoUpdate(material);
+
         return material;
     }
 

@@ -75,6 +75,33 @@ public class YamlConfigPluginIntegrationTest {
     }
 
     @Test
+    public void respondsToParseContentRequestWithDefaultAutoUpdate() throws Exception {
+        GoApiResponse settingsResponse = DefaultGoApiResponse.success("{\"default_auto_update\": \"false\"}");
+        when(goAccessor.submit(any(GoApiRequest.class))).thenReturn(settingsResponse);
+
+        final Gson gson = new Gson();
+        DefaultGoPluginApiRequest request = new DefaultGoPluginApiRequest("configrepo", "2.0", ConfigRepoMessages.REQ_PARSE_CONTENT);
+
+        StringWriter w = new StringWriter();
+        IOUtils.copy(getResourceAsStream("examples/simple.gocd.yaml"), w);
+        request.setRequestBody(gson.toJson(
+                Collections.singletonMap("contents",
+                        Collections.singletonMap("simple.gocd.yaml", w.toString())
+                )
+        ));
+
+        GoPluginApiResponse response = plugin.handle(request);
+        assertEquals(SUCCESS_RESPONSE_CODE, response.responseCode());
+        JsonObject responseJsonObject = getJsonObjectFromResponse(response);
+        assertNoError(responseJsonObject);
+
+        JsonArray pipelines = responseJsonObject.get("pipelines").getAsJsonArray();
+        assertThat(pipelines.size(), is(1));
+        JsonObject expected = (JsonObject) readJsonObject("examples.out/simple-auto-update-false.gocd.json");
+        assertThat(responseJsonObject, is(new JsonObjectMatcher(expected)));
+    }
+
+    @Test
     public void respondsToGetConfigFiles() throws Exception {
         final Gson gson = new Gson();
         DefaultGoPluginApiRequest request = new DefaultGoPluginApiRequest("configrepo", "3.0", ConfigRepoMessages.REQ_CONFIG_FILES);
@@ -162,6 +189,22 @@ public class YamlConfigPluginIntegrationTest {
     }
 
     @Test
+    public void shouldRespondSuccessToParseDirectoryRequestWhenSimpleCaseFileWithDefaultAutoUpdate() throws UnhandledRequestTypeException, IOException {
+        GoApiResponse settingsResponse = DefaultGoApiResponse.success("{\"default_auto_update\": \"false\"}");
+        when(goAccessor.submit(any(GoApiRequest.class))).thenReturn(settingsResponse);
+        
+        GoPluginApiResponse response = parseAndGetResponseForDir(setupCase("simple"));
+
+        assertThat(response.responseCode(), is(SUCCESS_RESPONSE_CODE));
+        JsonObject responseJsonObject = getJsonObjectFromResponse(response);
+        assertNoError(responseJsonObject);
+        JsonArray pipelines = responseJsonObject.get("pipelines").getAsJsonArray();
+        assertThat(pipelines.size(), is(1));
+        JsonObject expected = (JsonObject) readJsonObject("examples.out/simple-auto-update-false.gocd.json");
+        assertThat(responseJsonObject, is(new JsonObjectMatcher(expected)));
+    }
+
+    @Test
     public void shouldRespondSuccessToParseDirectoryRequestWhenRichCaseFile() throws UnhandledRequestTypeException, IOException {
         GoPluginApiResponse response = parseAndGetResponseForDir(setupCase("rich"));
 
@@ -171,6 +214,22 @@ public class YamlConfigPluginIntegrationTest {
         JsonArray pipelines = responseJsonObject.get("pipelines").getAsJsonArray();
         assertThat(pipelines.size(), is(1));
         JsonObject expected = (JsonObject) readJsonObject("examples.out/rich.gocd.json");
+        assertThat(responseJsonObject, is(new JsonObjectMatcher(expected)));
+    }
+
+    @Test
+    public void shouldRespondSuccessToParseDirectoryRequestWhenRichCaseFileWithDefaultAutoUpdate() throws UnhandledRequestTypeException, IOException {
+        GoApiResponse settingsResponse = DefaultGoApiResponse.success("{\"default_auto_update\": \"false\"}");
+        when(goAccessor.submit(any(GoApiRequest.class))).thenReturn(settingsResponse);
+
+        GoPluginApiResponse response = parseAndGetResponseForDir(setupCase("rich"));
+
+        assertThat(response.responseCode(), is(SUCCESS_RESPONSE_CODE));
+        JsonObject responseJsonObject = getJsonObjectFromResponse(response);
+        assertNoError(responseJsonObject);
+        JsonArray pipelines = responseJsonObject.get("pipelines").getAsJsonArray();
+        assertThat(pipelines.size(), is(1));
+        JsonObject expected = (JsonObject) readJsonObject("examples.out/rich-auto-update-false.gocd.json");
         assertThat(responseJsonObject, is(new JsonObjectMatcher(expected)));
     }
 

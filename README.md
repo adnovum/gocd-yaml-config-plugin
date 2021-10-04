@@ -2,6 +2,9 @@
 
 # gocd-yaml-config-plugin
 
+**This fork allows to globally override `autoUpdate` defaults for Git materials, to ease the migration to webhook-only 
+materials without having to manually change hundreds of configurations owned by different teams.**
+
 [![CI](https://github.com/adnovum/gocd-yaml-config-plugin/actions/workflows/ci.yml/badge.svg)](https://github.com/adnovum/gocd-yaml-config-plugin/actions/workflows/ci.yml)
 
 [GoCD](https://www.gocd.org) plugin to keep **pipelines** and **environments**

@@ -1,17 +1,20 @@
 package cd.go.plugin.config.yaml.transforms;
 
-import com.google.gson.JsonArray;
-import com.google.gson.JsonObject;
-import com.google.gson.internal.LinkedTreeMap;
+import static cd.go.plugin.config.yaml.JSONUtils.addOptionalValue;
+import static cd.go.plugin.config.yaml.YamlUtils.addOptionalBoolean;
+import static cd.go.plugin.config.yaml.YamlUtils.addOptionalObject;
+import static cd.go.plugin.config.yaml.YamlUtils.addOptionalString;
+import static cd.go.plugin.config.yaml.YamlUtils.getOptionalString;
+import static java.lang.String.format;
+import static java.util.UUID.randomUUID;
 
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 
-import static cd.go.plugin.config.yaml.JSONUtils.addOptionalValue;
-import static cd.go.plugin.config.yaml.YamlUtils.*;
-import static java.lang.String.format;
-import static java.util.UUID.randomUUID;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonObject;
+import com.google.gson.internal.LinkedTreeMap;
 
 public class MaterialTransform extends ConfigurationTransform {
 
@@ -31,7 +34,7 @@ public class MaterialTransform extends ConfigurationTransform {
 
     public static final String YAML_BLACKLIST_KEYWORD = "blacklist";
     private static final String YAML_SHORT_KEYWORD_DEPENDENCY = "pipeline";
-    private static final String YAML_SHORT_KEYWORD_SCM_ID = "scm";
+    public static final String YAML_SHORT_KEYWORD_SCM_ID = "scm";
     private static final String YAML_SHORT_KEYWORD_PACKAGE_ID = "package";
     private static final String YAML_SHORT_KEYWORD_SVN = "svn";
     private static final String JSON_MATERIAL_CHECK_EXTERNALS_FIELD = "check_externals";

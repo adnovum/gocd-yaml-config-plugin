@@ -1,16 +1,20 @@
 package cd.go.plugin.config.yaml.transforms;
 
-import cd.go.plugin.config.yaml.YamlConfigException;
-import com.google.gson.JsonArray;
-import com.google.gson.JsonObject;
-import com.google.gson.internal.LinkedTreeMap;
+import static cd.go.plugin.config.yaml.JSONUtils.addOptionalList;
+import static cd.go.plugin.config.yaml.JSONUtils.addOptionalValue;
+import static cd.go.plugin.config.yaml.JSONUtils.addRequiredValue;
+import static cd.go.plugin.config.yaml.YamlUtils.addOptionalBoolean;
+import static cd.go.plugin.config.yaml.YamlUtils.addOptionalStringList;
+import static cd.go.plugin.config.yaml.YamlUtils.addRequiredString;
+import static cd.go.plugin.config.yaml.transforms.EnvironmentVariablesTransform.JSON_ENV_VAR_FIELD;
 
 import java.util.List;
 import java.util.Map;
 
-import static cd.go.plugin.config.yaml.JSONUtils.*;
-import static cd.go.plugin.config.yaml.YamlUtils.*;
-import static cd.go.plugin.config.yaml.transforms.EnvironmentVariablesTransform.JSON_ENV_VAR_FIELD;
+import cd.go.plugin.config.yaml.YamlConfigException;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonObject;
+import com.google.gson.internal.LinkedTreeMap;
 
 public class StageTransform {
     private static final String JSON_STAGE_NAME_FIELD = "name";
@@ -21,9 +25,9 @@ public class StageTransform {
     private static final String JSON_STAGE_CLEAN_WORK_FIELD = "clean_working_directory";
     private static final String YAML_STAGE_CLEAN_WORK_FIELD = "clean_workspace";
     private static final String YAML_STAGE_APPROVAL_FIELD = "approval";
-    private static final String JSON_STAGE_APPROVAL_FIELD = "approval";
-    private static final String JSON_STAGE_APPROVAL_TYPE_FIELD = "type";
-    private static final String YAML_STAGE_APPROVAL_TYPE_FIELD = "type";
+    public static final String JSON_STAGE_APPROVAL_FIELD = "approval";
+    public static final String JSON_STAGE_APPROVAL_TYPE_FIELD = "type";
+    public static final String YAML_STAGE_APPROVAL_TYPE_FIELD = "type";
     private static final String JSON_STAGE_JOBS_FIELD = "jobs";
     private static final String JSON_STAGE_APPROVAL_ALLOW_ONLY_ON_SUCCESS_FIELD = "allow_only_on_success";
     private static final String YAML_STAGE_APPROVAL_ALLOW_ONLY_ON_SUCCESS_FIELD = "allow_only_on_success";

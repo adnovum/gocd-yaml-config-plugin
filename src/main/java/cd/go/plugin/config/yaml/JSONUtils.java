@@ -1,10 +1,14 @@
 package cd.go.plugin.config.yaml;
 
-import com.google.gson.GsonBuilder;
-import com.google.gson.reflect.TypeToken;
-
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Stream;
+import java.util.stream.StreamSupport;
+
+import com.google.gson.GsonBuilder;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
+import com.google.gson.reflect.TypeToken;
 
 public class JSONUtils {
     static <T> T fromJSON(String json) {
@@ -45,5 +49,14 @@ public class JSONUtils {
             throw new YamlConfigException("field " + yamlFieldName + ": is required");
 
         dest.put(yamlFieldName, value);
+    }
+
+    public static Stream<JsonElement> stream(JsonArray array) {
+        return StreamSupport.stream(array.spliterator(), false);
+    }
+
+    public static String getKeyAsString(JsonElement element, String key) {
+        JsonElement value = element.getAsJsonObject().get(key);
+        return value != null ? value.getAsString() : null;
     }
 }

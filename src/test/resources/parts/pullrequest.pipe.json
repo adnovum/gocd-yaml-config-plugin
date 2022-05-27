@@ -1,0 +1,44 @@
+{
+	"name": "pipe1",
+	"group": "mygroup",
+	"materials": [
+		{
+			"name": "pipe1-pr",
+			"type": "plugin",
+			"scm_id": "foo.bar.pr"
+		}
+	],
+	"stages": [
+		{
+			"name": "build",
+			"approval": {
+				"type": "manual"
+			},
+			"jobs": [
+				{
+					"name": "build",
+					"tasks": [
+						{
+							"type": "exec",
+							"command": "make"
+						}
+					]
+				}
+			]
+		},
+		{
+			"name": "test",
+			"jobs": [
+				{
+					"name": "build",
+					"tasks": [
+						{
+							"type": "exec",
+							"command": "make"
+						}
+					]
+				}
+			]
+		}
+	]
+}

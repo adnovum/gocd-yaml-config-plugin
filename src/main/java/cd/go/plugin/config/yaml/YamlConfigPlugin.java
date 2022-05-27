@@ -1,7 +1,33 @@
 package cd.go.plugin.config.yaml;
 
-import cd.go.plugin.config.yaml.transforms.RootTransform;
+import static cd.go.plugin.config.yaml.PluginSettings.DEFAULT_DEFAULT_AUTO_UPDATE;
+import static cd.go.plugin.config.yaml.PluginSettings.DEFAULT_FILE_PATTERN;
+import static cd.go.plugin.config.yaml.PluginSettings.DEFAULT_USE_APPROVAL_MANUAL_FOR_PRS;
+import static cd.go.plugin.config.yaml.PluginSettings.DEFAULT_PR_MATERIAL_ID_PATTERN;
+import static cd.go.plugin.config.yaml.PluginSettings.PLUGIN_SETTINGS_DEFAULT_AUTO_UPDATE;
+import static cd.go.plugin.config.yaml.PluginSettings.PLUGIN_SETTINGS_FILE_PATTERN;
+import static cd.go.plugin.config.yaml.PluginSettings.PLUGIN_SETTINGS_USE_APPROVAL_MANUAL_FOR_PRS;
+import static cd.go.plugin.config.yaml.PluginSettings.PLUGIN_SETTINGS_PR_MATERIAL_ID_PATTERN;
+import static com.thoughtworks.go.plugin.api.response.DefaultGoPluginApiResponse.SUCCESS_RESPONSE_CODE;
+import static com.thoughtworks.go.plugin.api.response.DefaultGoPluginApiResponse.badRequest;
+import static com.thoughtworks.go.plugin.api.response.DefaultGoPluginApiResponse.error;
+import static com.thoughtworks.go.plugin.api.response.DefaultGoPluginApiResponse.success;
+import static java.lang.String.format;
+
+import java.io.ByteArrayInputStream;
+import java.io.File;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Base64;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.function.Supplier;
+
 import cd.go.plugin.config.yaml.transforms.DefaultOverrides;
+import cd.go.plugin.config.yaml.transforms.RootTransform;
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import com.thoughtworks.go.plugin.api.GoApplicationAccessor;
@@ -17,23 +43,14 @@ import com.thoughtworks.go.plugin.api.response.GoApiResponse;
 import com.thoughtworks.go.plugin.api.response.GoPluginApiResponse;
 import org.apache.commons.io.IOUtils;
 
-import java.io.ByteArrayInputStream;
-import java.io.File;
-import java.io.IOException;
-import java.util.*;
-import java.util.function.Supplier;
-
-import static cd.go.plugin.config.yaml.PluginSettings.DEFAULT_DEFAULT_AUTO_UPDATE;
-import static cd.go.plugin.config.yaml.PluginSettings.DEFAULT_FILE_PATTERN;
-import static cd.go.plugin.config.yaml.PluginSettings.PLUGIN_SETTINGS_DEFAULT_AUTO_UPDATE;
-import static cd.go.plugin.config.yaml.PluginSettings.PLUGIN_SETTINGS_FILE_PATTERN;
-import static com.thoughtworks.go.plugin.api.response.DefaultGoPluginApiResponse.*;
-import static java.lang.String.format;
-
 @Extension
 public class YamlConfigPlugin implements GoPlugin, ConfigRepoMessages {
     private static final String DISPLAY_NAME_FILE_PATTERN = "Go YAML files pattern";
     private static final String DISPLAY_NAME_DEFAULT_AUTO_UPDATE = "Default auto_update for Git materials";
+
+    private static final String DISPLAY_NAME_USE_APPROVAL_MANUAL_FOR_PRS = "Set approval: manual on PR pipelines";
+
+    private static final String DISPLAY_NAME_PR_MATERIAL_ID_PATTERN = "Regex pattern to identify PR materials by their ID";
     private static final String PLUGIN_ID = "yaml.config.plugin.adn";
     private static Logger LOGGER = Logger.getLoggerFor(YamlConfigPlugin.class);
 
@@ -121,6 +138,8 @@ public class YamlConfigPlugin implements GoPlugin, ConfigRepoMessages {
             settings = fetchPluginSettings();
         }
         DefaultOverrides.setDefaultGitAutoUpdate(settings.getDefaultGitAutoUpdate());
+        DefaultOverrides.setUseApprovalManualForPRs(settings.useApprovalManualForPRs());
+        DefaultOverrides.setPrMaterialIdPattern(settings.getPrMaterialIdPattern());
     }
 
     private GoPluginApiResponse handleParseContentRequest(GoPluginApiRequest request) {
@@ -212,6 +231,10 @@ public class YamlConfigPlugin implements GoPlugin, ConfigRepoMessages {
         response.put(PLUGIN_SETTINGS_FILE_PATTERN, createField(DISPLAY_NAME_FILE_PATTERN, DEFAULT_FILE_PATTERN, false, false, "0"));
         response.put(PLUGIN_SETTINGS_DEFAULT_AUTO_UPDATE, createField(DISPLAY_NAME_DEFAULT_AUTO_UPDATE,
                 DEFAULT_DEFAULT_AUTO_UPDATE, false, false, "1"));
+        response.put(PLUGIN_SETTINGS_USE_APPROVAL_MANUAL_FOR_PRS, createField(DISPLAY_NAME_USE_APPROVAL_MANUAL_FOR_PRS,
+                DEFAULT_USE_APPROVAL_MANUAL_FOR_PRS, false, false, "2"));
+        response.put(PLUGIN_SETTINGS_PR_MATERIAL_ID_PATTERN, createField(DISPLAY_NAME_PR_MATERIAL_ID_PATTERN,
+                DEFAULT_PR_MATERIAL_ID_PATTERN, false, false, "3"));
         return success(gson.toJson(response));
     }
 

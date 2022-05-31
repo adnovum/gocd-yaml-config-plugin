@@ -1,19 +1,23 @@
 package cd.go.plugin.config.yaml.transforms;
 
-import cd.go.plugin.config.yaml.YamlConfigException;
-import com.google.gson.JsonArray;
-import com.google.gson.JsonObject;
-import com.google.gson.internal.LinkedTreeMap;
+import static cd.go.plugin.config.yaml.JSONUtils.addOptionalInt;
+import static cd.go.plugin.config.yaml.JSONUtils.addOptionalValue;
+import static cd.go.plugin.config.yaml.YamlUtils.addOptionalBoolean;
+import static cd.go.plugin.config.yaml.YamlUtils.addOptionalInteger;
+import static cd.go.plugin.config.yaml.YamlUtils.addOptionalObject;
+import static cd.go.plugin.config.yaml.YamlUtils.addOptionalString;
+import static cd.go.plugin.config.yaml.YamlUtils.addRequiredString;
+import static cd.go.plugin.config.yaml.transforms.EnvironmentVariablesTransform.JSON_ENV_VAR_FIELD;
+import static cd.go.plugin.config.yaml.transforms.ParameterTransform.YAML_PIPELINE_PARAMETERS_FIELD;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-import static cd.go.plugin.config.yaml.JSONUtils.addOptionalInt;
-import static cd.go.plugin.config.yaml.JSONUtils.addOptionalValue;
-import static cd.go.plugin.config.yaml.YamlUtils.*;
-import static cd.go.plugin.config.yaml.transforms.EnvironmentVariablesTransform.JSON_ENV_VAR_FIELD;
-import static cd.go.plugin.config.yaml.transforms.ParameterTransform.YAML_PIPELINE_PARAMETERS_FIELD;
+import cd.go.plugin.config.yaml.YamlConfigException;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonObject;
+import com.google.gson.internal.LinkedTreeMap;
 
 public class PipelineTransform {
     private static final String JSON_PIPELINE_NAME_FIELD = "name";
@@ -24,8 +28,8 @@ public class PipelineTransform {
     private static final String JSON_PIPELINE_LOCK_BEHAVIOR_FIELD = "lock_behavior";
     private static final String JSON_PIPELINE_TRACKING_TOOL_FIELD = "tracking_tool";
     private static final String JSON_PIPELINE_TIMER_FIELD = "timer";
-    private static final String JSON_PIPELINE_MATERIALS_FIELD = "materials";
-    private static final String JSON_PIPELINE_STAGES_FIELD = "stages";
+    public static final String JSON_PIPELINE_MATERIALS_FIELD = "materials";
+    public static final String JSON_PIPELINE_STAGES_FIELD = "stages";
     private static final String JSON_PIPELINE_DISPLAY_ORDER_FIELD = "display_order_weight";
 
     private static final String YAML_PIPELINE_GROUP_FIELD = "group";
@@ -35,8 +39,8 @@ public class PipelineTransform {
     private static final String YAML_PIPELINE_LOCK_BEHAVIOR_FIELD = "lock_behavior";
     private static final String YAML_PIPELINE_TRACKING_TOOL_FIELD = "tracking_tool";
     private static final String YAML_PIPELINE_TIMER_FIELD = "timer";
-    private static final String YAML_PIPELINE_MATERIALS_FIELD = "materials";
-    private static final String YAML_PIPELINE_STAGES_FIELD = "stages";
+    public static final String YAML_PIPELINE_MATERIALS_FIELD = "materials";
+    public static final String YAML_PIPELINE_STAGES_FIELD = "stages";
     private static final String YAML_PIPELINE_DISPLAY_ORDER_FIELD = "display_order";
 
     private final MaterialTransform materialTransform;
@@ -89,6 +93,8 @@ public class PipelineTransform {
             pipeline.add(YAML_PIPELINE_PARAMETERS_FIELD, params);
         }
 
+        DefaultOverrides.addApprovalManualForPullRequests(pipeline);
+
         return pipeline;
     }
 
@@ -124,6 +130,8 @@ public class PipelineTransform {
         if (params != null && !params.isEmpty()) {
             pipelineMap.putAll(params);
         }
+
+        DefaultOverrides.addApprovalManualForPullRequestsInverse(pipelineMap);
 
         result.put(name, pipelineMap);
         return result;

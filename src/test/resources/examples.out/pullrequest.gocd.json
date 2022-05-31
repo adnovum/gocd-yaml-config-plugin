@@ -1,0 +1,38 @@
+{
+  "target_version": 1,
+  "errors": [],
+  "environments": [],
+  "pipelines": [
+    {
+      "location": "pullrequest.gocd.yaml",
+      "name": "pipe1",
+      "group": "pullrequest",
+      "materials": [
+        {
+          "name": "pipe1-pr",
+          "type": "plugin",
+          "scm_id": "foo.bar.pr"
+        }
+      ],
+      "stages": [
+        {
+          "name": "build",
+          "approval": {
+            "type": "manual"
+          },
+          "jobs": [
+            {
+              "name": "build",
+              "tasks": [
+                {
+                  "type": "exec",
+                  "command": "make"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

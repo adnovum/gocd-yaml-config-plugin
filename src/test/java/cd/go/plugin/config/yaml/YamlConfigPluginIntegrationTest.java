@@ -1,6 +1,36 @@
 package cd.go.plugin.config.yaml;
 
-import com.google.gson.*;
+import static cd.go.plugin.config.yaml.ConfigRepoMessages.REQ_PLUGIN_SETTINGS_CHANGED;
+import static cd.go.plugin.config.yaml.PluginSettings.DEFAULT_FILE_PATTERN;
+import static cd.go.plugin.config.yaml.TestUtils.getResourceAsStream;
+import static cd.go.plugin.config.yaml.TestUtils.readJsonObject;
+import static com.thoughtworks.go.plugin.api.response.DefaultGoPluginApiResponse.SUCCESS_RESPONSE_CODE;
+import static org.hamcrest.core.Is.is;
+import static org.junit.Assert.assertArrayEquals;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertTrue;
+import static org.mockito.Matchers.any;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
+import java.io.File;
+import java.io.IOException;
+import java.io.StringWriter;
+import java.util.Base64;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
+
+import com.google.gson.Gson;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
+import com.google.gson.JsonPrimitive;
 import com.thoughtworks.go.plugin.api.GoApplicationAccessor;
 import com.thoughtworks.go.plugin.api.exceptions.UnhandledRequestTypeException;
 import com.thoughtworks.go.plugin.api.request.DefaultGoPluginApiRequest;
@@ -16,22 +46,6 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
-
-import java.io.File;
-import java.io.IOException;
-import java.io.StringWriter;
-import java.util.Base64;
-import java.util.Collections;
-
-import static cd.go.plugin.config.yaml.ConfigRepoMessages.REQ_PLUGIN_SETTINGS_CHANGED;
-import static cd.go.plugin.config.yaml.PluginSettings.DEFAULT_FILE_PATTERN;
-import static cd.go.plugin.config.yaml.TestUtils.getResourceAsStream;
-import static cd.go.plugin.config.yaml.TestUtils.readJsonObject;
-import static com.thoughtworks.go.plugin.api.response.DefaultGoPluginApiResponse.SUCCESS_RESPONSE_CODE;
-import static org.hamcrest.core.Is.is;
-import static org.junit.Assert.*;
-import static org.mockito.Matchers.any;
-import static org.mockito.Mockito.*;
 
 public class YamlConfigPluginIntegrationTest {
     @Rule
@@ -98,6 +112,36 @@ public class YamlConfigPluginIntegrationTest {
         JsonArray pipelines = responseJsonObject.get("pipelines").getAsJsonArray();
         assertThat(pipelines.size(), is(1));
         JsonObject expected = (JsonObject) readJsonObject("examples.out/simple-auto-update-false.gocd.json");
+        assertThat(responseJsonObject, is(new JsonObjectMatcher(expected)));
+    }
+
+    @Test
+    public void respondsToParseContentRequestWithApprovalManualForPRs() throws Exception {
+        Map<String, Object> settings = new HashMap<>();
+        settings.put("use_approval_manual_for_prs", "true");
+        settings.put("pr_material_id_pattern", "^.*\\.pr$");
+        GoApiResponse settingsResponse = DefaultGoApiResponse.success(JSONUtils.toJSON(settings));
+        when(goAccessor.submit(any(GoApiRequest.class))).thenReturn(settingsResponse);
+
+        final Gson gson = new Gson();
+        DefaultGoPluginApiRequest request = new DefaultGoPluginApiRequest("configrepo", "2.0", ConfigRepoMessages.REQ_PARSE_CONTENT);
+
+        StringWriter w = new StringWriter();
+        IOUtils.copy(getResourceAsStream("examples/pullrequest.gocd.yaml"), w);
+        request.setRequestBody(gson.toJson(
+                Collections.singletonMap("contents",
+                        Collections.singletonMap("pullrequest.gocd.yaml", w.toString())
+                )
+        ));
+
+        GoPluginApiResponse response = plugin.handle(request);
+        assertEquals(SUCCESS_RESPONSE_CODE, response.responseCode());
+        JsonObject responseJsonObject = getJsonObjectFromResponse(response);
+        assertNoError(responseJsonObject);
+
+        JsonArray pipelines = responseJsonObject.get("pipelines").getAsJsonArray();
+        assertThat(pipelines.size(), is(1));
+        JsonObject expected = (JsonObject) readJsonObject("examples.out/pullrequest.gocd.json");
         assertThat(responseJsonObject, is(new JsonObjectMatcher(expected)));
     }
 

@@ -1,0 +1,19 @@
+# pipeline with a PR SCM -> should get approval: manual on first stage
+pipe1:
+  group: mygroup
+  materials:
+    pipe1-pr:
+      scm: foo.bar.pr
+  stages:
+    - build:
+        jobs:
+          build:
+            tasks:
+              - exec:
+                  command: make
+    - test:
+        jobs:
+          build:
+            tasks:
+              - exec:
+                  command: make

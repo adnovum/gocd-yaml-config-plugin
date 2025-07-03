@@ -1,36 +1,6 @@
 package cd.go.plugin.config.yaml;
 
-import static cd.go.plugin.config.yaml.ConfigRepoMessages.REQ_PLUGIN_SETTINGS_CHANGED;
-import static cd.go.plugin.config.yaml.PluginSettings.DEFAULT_FILE_PATTERN;
-import static cd.go.plugin.config.yaml.TestUtils.getResourceAsStream;
-import static cd.go.plugin.config.yaml.TestUtils.readJsonObject;
-import static com.thoughtworks.go.plugin.api.response.DefaultGoPluginApiResponse.SUCCESS_RESPONSE_CODE;
-import static org.hamcrest.core.Is.is;
-import static org.junit.Assert.assertArrayEquals;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.assertTrue;
-import static org.mockito.Matchers.any;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
-
-import java.io.File;
-import java.io.IOException;
-import java.io.StringWriter;
-import java.util.Base64;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
-
-import com.google.gson.Gson;
-import com.google.gson.JsonArray;
-import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
-import com.google.gson.JsonPrimitive;
+import com.google.gson.*;
 import com.thoughtworks.go.plugin.api.GoApplicationAccessor;
 import com.thoughtworks.go.plugin.api.exceptions.UnhandledRequestTypeException;
 import com.thoughtworks.go.plugin.api.request.DefaultGoPluginApiRequest;
@@ -39,29 +9,44 @@ import com.thoughtworks.go.plugin.api.response.DefaultGoApiResponse;
 import com.thoughtworks.go.plugin.api.response.DefaultGoPluginApiResponse;
 import com.thoughtworks.go.plugin.api.response.GoApiResponse;
 import com.thoughtworks.go.plugin.api.response.GoPluginApiResponse;
-import org.apache.commons.io.FileUtils;
-import org.apache.commons.io.IOUtils;
-import org.hamcrest.core.Is;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
+
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.Base64;
+import java.util.Collections;
+import java.util.Objects;
+
+import static cd.go.plugin.config.yaml.ConfigRepoMessages.REQ_PLUGIN_SETTINGS_CHANGED;
+import static cd.go.plugin.config.yaml.PluginSettings.DEFAULT_FILE_PATTERN;
+import static cd.go.plugin.config.yaml.TestUtils.getResourceAsStream;
+import static cd.go.plugin.config.yaml.TestUtils.readJsonObject;
+import static com.thoughtworks.go.plugin.api.response.DefaultGoPluginApiResponse.SUCCESS_RESPONSE_CODE;
+import static java.nio.file.StandardCopyOption.REPLACE_EXISTING;
+import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.*;
 
 public class YamlConfigPluginIntegrationTest {
-    @Rule
-    public TemporaryFolder tempDir = new TemporaryFolder();
+    @TempDir
+    Path tempDir;
     private YamlConfigPlugin plugin;
     private GoApplicationAccessor goAccessor;
     private JsonParser parser;
 
-    @Before
+    @BeforeEach
     public void setUp() {
         plugin = new YamlConfigPlugin();
         goAccessor = mock(GoApplicationAccessor.class);
         plugin.initializeGoApplicationAccessor(goAccessor);
         GoApiResponse settingsResponse = DefaultGoApiResponse.success("{}");
-        when(goAccessor.submit(any(GoApiRequest.class))).thenReturn(settingsResponse);
-        parser = new JsonParser();
+        when(goAccessor.submit(any())).thenReturn(settingsResponse);
     }
 
     @Test
@@ -69,11 +54,10 @@ public class YamlConfigPluginIntegrationTest {
         final Gson gson = new Gson();
         DefaultGoPluginApiRequest request = new DefaultGoPluginApiRequest("configrepo", "2.0", ConfigRepoMessages.REQ_PARSE_CONTENT);
 
-        StringWriter w = new StringWriter();
-        IOUtils.copy(getResourceAsStream("examples/simple.gocd.yaml"), w);
+        String simpleYaml = TestUtils.loadString("examples/simple.gocd.yaml");
         request.setRequestBody(gson.toJson(
                 Collections.singletonMap("contents",
-                        Collections.singletonMap("simple.gocd.yaml", w.toString())
+                        Collections.singletonMap("simple.gocd.yaml", simpleYaml)
                 )
         ));
 
@@ -149,15 +133,12 @@ public class YamlConfigPluginIntegrationTest {
     public void respondsToGetConfigFiles() throws Exception {
         final Gson gson = new Gson();
         DefaultGoPluginApiRequest request = new DefaultGoPluginApiRequest("configrepo", "3.0", ConfigRepoMessages.REQ_CONFIG_FILES);
-        FileUtils.copyInputStreamToFile(
-                getResourceAsStream("/examples/simple.gocd.yaml"), tempDir.newFile("valid.gocd.yaml")
-        );
-        FileUtils.copyInputStreamToFile(
-                getResourceAsStream("/examples/simple-invalid.gocd.yaml"), tempDir.newFile("invalid.gocd.yaml")
-        );
+
+        Files.copy(getResourceAsStream("/examples/simple.gocd.yaml"), Files.createFile(tempDir.resolve("valid.gocd.yaml")), REPLACE_EXISTING);
+        Files.copy(getResourceAsStream("/examples/simple-invalid.gocd.yaml"), Files.createFile(tempDir.resolve("invalid.gocd.yaml")), REPLACE_EXISTING);
 
         request.setRequestBody(gson.toJson(
-                Collections.singletonMap("directory", tempDir.getRoot().toString())
+                Collections.singletonMap("directory", tempDir.toFile().toString())
         ));
 
         GoPluginApiResponse response = plugin.handle(request);
@@ -212,7 +193,7 @@ public class YamlConfigPluginIntegrationTest {
 
     @Test
     public void shouldRespondSuccessToParseDirectoryRequestWhenEmpty() throws UnhandledRequestTypeException {
-        GoPluginApiResponse response = parseAndGetResponseForDir(tempDir.getRoot());
+        GoPluginApiResponse response = parseAndGetResponseForDir(tempDir.toFile());
 
         assertThat(response.responseCode(), is(SUCCESS_RESPONSE_CODE));
         JsonObject responseJsonObject = getJsonObjectFromResponse(response);
@@ -374,8 +355,7 @@ public class YamlConfigPluginIntegrationTest {
     @Test
     public void shouldRespondBadRequestToParseDirectoryRequestWhenRequestBodyIsNull() throws UnhandledRequestTypeException {
         DefaultGoPluginApiRequest parseDirectoryRequest = new DefaultGoPluginApiRequest("configrepo", "1.0", "parse-directory");
-        String requestBody = null;
-        parseDirectoryRequest.setRequestBody(requestBody);
+        parseDirectoryRequest.setRequestBody(null);
 
         GoPluginApiResponse response = plugin.handle(parseDirectoryRequest);
         assertThat(response.responseCode(), is(DefaultGoPluginApiResponse.BAD_REQUEST));
@@ -415,24 +395,23 @@ public class YamlConfigPluginIntegrationTest {
     @Test
     public void shouldRespondSuccessToParseDirectoryRequestWhenPluginHasConfiguration() throws UnhandledRequestTypeException {
         GoApiResponse settingsResponse = DefaultGoApiResponse.success("{}");
-        when(goAccessor.submit(any(GoApiRequest.class))).thenReturn(settingsResponse);
+        when(goAccessor.submit(any())).thenReturn(settingsResponse);
 
-        GoPluginApiResponse response = parseAndGetResponseForDir(tempDir.getRoot());
+        GoPluginApiResponse response = parseAndGetResponseForDir(tempDir.toFile());
 
-        verify(goAccessor, times(1)).submit(any(GoApiRequest.class));
+        verify(goAccessor, times(1)).submit(any());
         assertThat(response.responseCode(), is(SUCCESS_RESPONSE_CODE));
     }
 
     @Test
     public void shouldContainValidFieldsInResponseMessage() throws UnhandledRequestTypeException {
         GoApiResponse settingsResponse = DefaultGoApiResponse.success("{}");
-        when(goAccessor.submit(any(GoApiRequest.class))).thenReturn(settingsResponse);
+        when(goAccessor.submit(any())).thenReturn(settingsResponse);
 
-        GoPluginApiResponse response = parseAndGetResponseForDir(tempDir.getRoot());
+        GoPluginApiResponse response = parseAndGetResponseForDir(tempDir.toFile());
 
         assertThat(response.responseCode(), is(SUCCESS_RESPONSE_CODE));
-        final JsonParser parser = new JsonParser();
-        JsonElement responseObj = parser.parse(response.responseBody());
+        JsonElement responseObj = JsonParser.parseString(response.responseBody());
         assertTrue(responseObj.isJsonObject());
         JsonObject obj = responseObj.getAsJsonObject();
         assertTrue(obj.has("errors"));
@@ -457,30 +436,30 @@ public class YamlConfigPluginIntegrationTest {
 
     @Test
     public void shouldUpdateTargetVersionWhenItIsTheSameAcrossAllFiles() throws Exception {
-        FileUtils.copyInputStreamToFile(getResourceAsStream("/parts/roots/version_2.yaml"), tempDir.newFile("v2_1.gocd.yaml"));
-        FileUtils.copyInputStreamToFile(getResourceAsStream("/parts/roots/version_2.yaml"), tempDir.newFile("v2_2.gocd.yaml"));
+        Files.copy(getResourceAsStream("/parts/roots/version_2.yaml"), Files.createFile(tempDir.resolve("v2_1.gocd.yaml")), REPLACE_EXISTING);
+        Files.copy(getResourceAsStream("/parts/roots/version_2.yaml"), Files.createFile(tempDir.resolve("v2_2.gocd.yaml")), REPLACE_EXISTING);
 
-        GoPluginApiResponse response = parseAndGetResponseForDir(tempDir.getRoot());
+        GoPluginApiResponse response = parseAndGetResponseForDir(tempDir.toFile());
         assertNoError(getJsonObjectFromResponse(response));
     }
 
     @Test
     public void shouldUpdateTargetVersionWhenItIsTheDefaultOrMissingAcrossAllPipelinesAndEnvironments() throws Exception {
-        FileUtils.copyInputStreamToFile(getResourceAsStream("/parts/roots/version_1.yaml"), tempDir.newFile("v1_1.gocd.yaml"));
-        FileUtils.copyInputStreamToFile(getResourceAsStream("/parts/roots/version_not_present.yaml"), tempDir.newFile("v1_not_present.gocd.yaml"));
-        FileUtils.copyInputStreamToFile(getResourceAsStream("/parts/roots/version_1.yaml"), tempDir.newFile("v1_2.gocd.yaml"));
+        Files.copy(getResourceAsStream("/parts/roots/version_1.yaml"), Files.createFile(tempDir.resolve("v1_1.gocd.yaml")), REPLACE_EXISTING);
+        Files.copy(getResourceAsStream("/parts/roots/version_not_present.yaml"), Files.createFile(tempDir.resolve("v1_not_present.gocd.yaml")), REPLACE_EXISTING);
+        Files.copy(getResourceAsStream("/parts/roots/version_1.yaml"), Files.createFile(tempDir.resolve("v1_2.gocd.yaml")), REPLACE_EXISTING);
 
-        GoPluginApiResponse response = parseAndGetResponseForDir(tempDir.getRoot());
+        GoPluginApiResponse response = parseAndGetResponseForDir(tempDir.toFile());
         assertNoError(getJsonObjectFromResponse(response));
     }
 
     @Test
     public void shouldFailToUpdateTargetVersionWhenItIs_NOT_TheSameAcrossAllFiles() throws Exception {
-        FileUtils.copyInputStreamToFile(getResourceAsStream("/parts/roots/version_1.yaml"), tempDir.newFile("v1_1.gocd.yaml"));
-        FileUtils.copyInputStreamToFile(getResourceAsStream("/parts/roots/version_1.yaml"), tempDir.newFile("v1_2.gocd.yaml"));
-        FileUtils.copyInputStreamToFile(getResourceAsStream("/parts/roots/version_2.yaml"), tempDir.newFile("v2_1.gocd.yaml"));
+        Files.copy(getResourceAsStream("/parts/roots/version_1.yaml"), Files.createFile(tempDir.resolve("v1_1.gocd.yaml")), REPLACE_EXISTING);
+        Files.copy(getResourceAsStream("/parts/roots/version_1.yaml"), Files.createFile(tempDir.resolve("v1_2.gocd.yaml")), REPLACE_EXISTING);
+        Files.copy(getResourceAsStream("/parts/roots/version_2.yaml"), Files.createFile(tempDir.resolve("v2_1.gocd.yaml")), REPLACE_EXISTING);
 
-        GoPluginApiResponse response = parseAndGetResponseForDir(tempDir.getRoot());
+        GoPluginApiResponse response = parseAndGetResponseForDir(tempDir.toFile());
         String expectedFailureMessage = "java.lang.RuntimeException: Versions across files are not unique. Found" +
                 " versions: [1, 2]. There can only be one version across the whole repository.";
         assertFirstError(getJsonObjectFromResponse(response), expectedFailureMessage, "YAML config plugin");
@@ -507,8 +486,9 @@ public class YamlConfigPluginIntegrationTest {
         assertEquals(jsonObject.entrySet().size(), 2);
         assertEquals(jsonObject.get("content_type").getAsString(), "image/svg+xml");
         byte[] actualData = Base64.getDecoder().decode(jsonObject.get("data").getAsString());
-        byte[] expectedData = IOUtils.toByteArray(getClass().getResourceAsStream("/yaml.svg"));
-        assertArrayEquals(expectedData, actualData);
+        try (InputStream inputStream = Objects.requireNonNull(getClass().getResourceAsStream("/yaml.svg"))) {
+            assertArrayEquals(inputStream.readAllBytes(), actualData);
+        }
     }
 
     private File setupCase(String caseName) throws IOException {
@@ -516,9 +496,9 @@ public class YamlConfigPluginIntegrationTest {
     }
 
     private File setupCase(String caseName, String extension) throws IOException {
-        File simpleFile = tempDir.newFile(caseName + "." + extension);
-        FileUtils.copyInputStreamToFile(getResourceAsStream("examples/" + caseName + ".gocd.yaml"), simpleFile);
-        return tempDir.getRoot();
+        Path simpleFile = Files.createFile(tempDir.resolve(caseName + "." + extension));
+        Files.copy(getResourceAsStream("examples/" + caseName + ".gocd.yaml"), simpleFile, REPLACE_EXISTING);
+        return tempDir.toFile();
     }
 
     private GoPluginApiResponse parseAndGetResponseForDir(File directory) throws UnhandledRequestTypeException {
@@ -533,7 +513,7 @@ public class YamlConfigPluginIntegrationTest {
     }
 
     private void assertNoError(JsonObject responseJsonObject) {
-        assertThat(responseJsonObject.get("errors"), Is.<JsonElement>is(new JsonArray()));
+        assertThat(responseJsonObject.get("errors"), is(new JsonArray()));
     }
 
     private void assertFirstError(JsonObject responseJsonObject, String expectedMessage, String expectedLocation) {
@@ -544,6 +524,6 @@ public class YamlConfigPluginIntegrationTest {
 
     private JsonObject getJsonObjectFromResponse(GoPluginApiResponse response) {
         String responseBody = response.responseBody();
-        return parser.parse(responseBody).getAsJsonObject();
+        return JsonParser.parseString(responseBody).getAsJsonObject();
     }
 }

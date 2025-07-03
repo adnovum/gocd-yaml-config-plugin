@@ -1,4 +1,5 @@
-[![Join the chat at https://gitter.im/gocd/gocd](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/gocd/configrepo-plugins?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
+[![Google Groups](https://img.shields.io/badge/Google_Groups-user_help-purple)](https://groups.google.com/g/go-cd)
+[![GitHub Discussions](https://img.shields.io/badge/GitHub_discussions-user_&amp;_dev_chat-green)](https://github.com/gocd/gocd/discussions)
 
 # gocd-yaml-config-plugin
 
@@ -76,7 +77,7 @@ pipelines:
     materials:
       mygit: # this is the name of material, the name can contain only of alphanumeric & underscore characters
         # keyword git says about type of material and url at once
-        git: http://my.example.org/mygit.git
+        git: https://my.example.org/mygit.git
         branch: ci
       myupstream: # this name does not matter, but there should be no 2 materials with the same name
         # type is optional here, material type is implied based on presence of pipeline and stage fields
@@ -220,6 +221,7 @@ Feel free to improve it!
     * [pluggable scm](#pluggable)
     * [config repo](#configrepo)
 1. [Secure variables](#to-generate-an-encrypted-value)
+1. [Retrieving secrets from Secrets Management plugins in values](#retrieving-secrets-from-secrets-management-plugins-in-values)
 1. [YAML Aliases](#yaml-aliases)
 
 ## Format version
@@ -370,7 +372,7 @@ When `format_version` is `4` (see [above](#format-version)), the order of displa
 - Pipelines defined in GoCD's config XML will also default to -1.
 - If multiple pipelines have the same `display_order` value, their order relative to each other will be indeterminate.
 
-```json
+```yaml
 mypipeline1:
   group: group1
   display_order: 10
@@ -648,7 +650,7 @@ mygit:
 More customized git material is possible:
 ```yaml
 gitMaterial1:
-  git: "http://my.git.repository.com"
+  git: "https://my.git.repository.com"
   branch: feature12
   ignore:
     - externals/**/*.*
@@ -682,7 +684,7 @@ For **GoCD >= 19.4.0 and `format_version: 5` and above**:
 You are advised to utilize `username` and `encrypted_password` for passing in material credentials as:
 ```yaml
 gitMaterial1:
-  git: "http://my.git.repository.com"
+  git: "https://my.git.repository.com"
   branch: feature12
   username: my_username
   encrypted_password: encrypted_value
@@ -1107,7 +1109,7 @@ parameters:
 ```
 
 
-#### To generate an encrypted value
+### To generate an encrypted value
 
 **For versions of GoCD >= 17.1:**
 
@@ -1119,6 +1121,25 @@ See the [encryption API](https://api.gocd.org/current/#encrypt-a-plain-text-valu
 
 ```sh
 sudo -u go bash -c 'echo -n 'YOUR-INPUT' | openssl enc -des-cbc -a -iv 0 -K $(cat /etc/go/cipher)'
+```
+
+### Retrieving secrets from Secrets Management plugins in values
+
+Rather than using secure variables encrypted in values and source controlled, you can use [Secrets Management](https://docs.gocd.org/current/configuration/secrets_management.html) plugins
+to store secrets within various backends and have them dynamically retrieved at runtime.
+
+With any of the corresponding YAML fields documented [here](https://docs.gocd.org/current/configuration/secrets_management.html#step-4---define-secret-params) you
+can use the special syntax to denote a secret to be looked up.
+
+Note that **quoting the values is important** since braces (`{`, `}`) are important in YAML, as a superset of JSON.
+
+```yaml
+environment_variables:
+  DEPLOYMENT: testing
+  FOO: bar
+  # this value retrieves the `testing_password` secret from the `sample_secret`
+  # configuration of whichever secrets plugin is appropriate
+  MY_PASSWORD: "{{SECRET:[sample_secret][testing_password]"
 ```
 
 ### Boolean values
@@ -1205,7 +1226,8 @@ pipelines:
 
 # Issues and questions
 
- * If you have **questions on usage**, please ask them on the [gitter chat room dedicated for configrepo-plugins](https://gitter.im/gocd/configrepo-plugins?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
+ *  If you have **questions on usage**, please ask them on the GoCD [Google Groups forum](https://groups.google.com/g/go-cd) or 
+[GitHub Discussions](https://github.com/gocd/gocd/discussions).
  * If you think there is a bug, or you have an idea for a feature and *you are not sure if it's plugin's or [GoCD](https://github.com/gocd/gocd/issues) fault/responsibity*, please ask on the chat first too.
 
 Please note this brief overview of what is done by the plugin:
@@ -1227,7 +1249,41 @@ If you have local java environment, then you may run all tests and create a read
 ./gradlew test jar
 ```
 
-## CI
+## Building with docker and dojo
+
+You don't need to setup java on your host, if you are fine with using docker and [Dojo](https://github.com/kudulab/dojo).
+This is actually how our GoCD builds the plugin:
+```sh
+dojo "gradle test jar"
+```
+
+Assuming you already have a working docker, On OSX, you can install with homebrew:
+```
+brew install kudulab/homebrew-dojo-osx/dojo
+```
+A manual install is another option:
+```sh
+version="0.9.0"
+# on Linux:
+wget -O /tmp/dojo https://github.com/kudulab/dojo/releases/download/${version}/dojo_linux_amd64
+# or on Darwin:
+# wget -O /tmp/dojo https://github.com/kudulab/dojo/releases/download/${version}/dojo_darwin_amd64
+chmod +x /tmp/dojo
+mv /tmp/dojo /usr/bin/dojo
+```
+
+Then enter a docker container with java and gradle pre-installed, by running following command at the root of the project:
+```
+dojo
+```
+
+## Versioning
+
+We use semantic versioning.
+
+If you are submitting a new feature or patch, please bump the version in `build.gradle`.
+
+## CI (Adnovum)
 
 All commits to any branch are built by Github Actions. See `.github/workflows` folder.
 
@@ -1250,6 +1306,7 @@ There are [examples of yaml partials](src/test/resources/parts) and
  their resulting json to be sent to GoCD server. If something is not working right
  we can always add a new case covering exact yaml that user has and json that we
  expect on server side.
+
 
 # License
 

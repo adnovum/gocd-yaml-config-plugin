@@ -1,22 +1,22 @@
 package cd.go.plugin.config.yaml;
 
-import java.util.List;
-import java.util.Map;
-import java.util.stream.Stream;
-import java.util.stream.StreamSupport;
-
+import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import com.google.gson.JsonArray;
-import com.google.gson.JsonElement;
 import com.google.gson.reflect.TypeToken;
 
+import java.util.List;
+import java.util.Map;
+
 public class JSONUtils {
-    static <T> T fromJSON(String json) {
-        return new GsonBuilder().create().fromJson(json, new TypeToken<T>() {}.getType());
+
+    private static final Gson GSON = new GsonBuilder().create();
+
+    static Map<String, String> fromJSON(String json) {
+        return GSON.fromJson(json, new TypeToken<Map<String, String>>() {}.getType());
     }
 
     static String toJSON(Object object) {
-        return new GsonBuilder().create().toJson(object);
+        return GSON.toJson(object);
     }
 
     public static void addOptionalValue(Map<String, Object> dest, Map<String, Object> src, String jsonField, String yamlFieldName) {

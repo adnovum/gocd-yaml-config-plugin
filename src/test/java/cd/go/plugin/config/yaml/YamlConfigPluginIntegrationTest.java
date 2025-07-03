@@ -21,6 +21,8 @@ import java.nio.file.Path;
 import java.util.Base64;
 import java.util.Collections;
 import java.util.Objects;
+import java.util.HashMap;
+import java.util.Map;
 
 import static cd.go.plugin.config.yaml.ConfigRepoMessages.REQ_PLUGIN_SETTINGS_CHANGED;
 import static cd.go.plugin.config.yaml.PluginSettings.DEFAULT_FILE_PATTERN;
@@ -80,11 +82,10 @@ public class YamlConfigPluginIntegrationTest {
         final Gson gson = new Gson();
         DefaultGoPluginApiRequest request = new DefaultGoPluginApiRequest("configrepo", "2.0", ConfigRepoMessages.REQ_PARSE_CONTENT);
 
-        StringWriter w = new StringWriter();
-        IOUtils.copy(getResourceAsStream("examples/simple.gocd.yaml"), w);
+        String testConfig = TestUtils.loadString("examples/simple.gocd.yaml");
         request.setRequestBody(gson.toJson(
                 Collections.singletonMap("contents",
-                        Collections.singletonMap("simple.gocd.yaml", w.toString())
+                        Collections.singletonMap("simple.gocd.yaml", testConfig)
                 )
         ));
 
@@ -110,11 +111,10 @@ public class YamlConfigPluginIntegrationTest {
         final Gson gson = new Gson();
         DefaultGoPluginApiRequest request = new DefaultGoPluginApiRequest("configrepo", "2.0", ConfigRepoMessages.REQ_PARSE_CONTENT);
 
-        StringWriter w = new StringWriter();
-        IOUtils.copy(getResourceAsStream("examples/pullrequest.gocd.yaml"), w);
+        String testConfig = TestUtils.loadString("examples/pullrequest.gocd.yaml");
         request.setRequestBody(gson.toJson(
                 Collections.singletonMap("contents",
-                        Collections.singletonMap("pullrequest.gocd.yaml", w.toString())
+                        Collections.singletonMap("pullrequest.gocd.yaml", testConfig)
                 )
         ));
 

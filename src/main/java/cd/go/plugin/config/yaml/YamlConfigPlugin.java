@@ -1,5 +1,15 @@
 package cd.go.plugin.config.yaml;
 
+import static cd.go.plugin.config.yaml.PluginSettings.DEFAULT_DEFAULT_AUTO_UPDATE;
+import static cd.go.plugin.config.yaml.PluginSettings.DEFAULT_FILE_PATTERN;
+import static cd.go.plugin.config.yaml.PluginSettings.DEFAULT_USE_APPROVAL_MANUAL_FOR_PRS;
+import static cd.go.plugin.config.yaml.PluginSettings.DEFAULT_PR_MATERIAL_ID_PATTERN;
+import static cd.go.plugin.config.yaml.PluginSettings.PLUGIN_SETTINGS_DEFAULT_AUTO_UPDATE;
+import static cd.go.plugin.config.yaml.PluginSettings.PLUGIN_SETTINGS_FILE_PATTERN;
+import static cd.go.plugin.config.yaml.PluginSettings.PLUGIN_SETTINGS_USE_APPROVAL_MANUAL_FOR_PRS;
+import static cd.go.plugin.config.yaml.PluginSettings.PLUGIN_SETTINGS_PR_MATERIAL_ID_PATTERN;
+
+import cd.go.plugin.config.yaml.transforms.DefaultOverrides;
 import cd.go.plugin.config.yaml.transforms.RootTransform;
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
@@ -14,11 +24,12 @@ import com.thoughtworks.go.plugin.api.request.GoPluginApiRequest;
 import com.thoughtworks.go.plugin.api.response.DefaultGoPluginApiResponse;
 import com.thoughtworks.go.plugin.api.response.GoApiResponse;
 import com.thoughtworks.go.plugin.api.response.GoPluginApiResponse;
-import org.apache.commons.io.IOUtils;
 
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.function.Supplier;
 
@@ -119,6 +130,9 @@ public class YamlConfigPlugin implements GoPlugin, ConfigRepoMessages {
         if (null == settings) {
             settings = fetchPluginSettings();
         }
+        DefaultOverrides.setDefaultGitAutoUpdate(settings.getDefaultGitAutoUpdate());
+        DefaultOverrides.setUseApprovalManualForPRs(settings.useApprovalManualForPRs());
+        DefaultOverrides.setPrMaterialIdPattern(settings.getPrMaterialIdPattern());
     }
 
     private GoPluginApiResponse handleParseContentRequest(GoPluginApiRequest request) {

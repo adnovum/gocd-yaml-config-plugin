@@ -2,7 +2,7 @@ apply plugin: 'java'
 apply from: "https://raw.githubusercontent.com/gocd/gocd-plugin-gradle-task-helpers/master/helper.gradle?_=${(int) (new Date().toInstant().epochSecond / 60)}"
 
 gocdPlugin {
-    id = 'yaml.config.plugin'
+    id = 'yaml.config.plugin.adn'
     pluginVersion = '1.0.0-adn1'
     goCdVersion = '22.1.0'
     name = 'YAML Configuration Plugin (Adn)'

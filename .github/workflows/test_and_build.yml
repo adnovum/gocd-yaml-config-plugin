@@ -28,7 +28,7 @@ jobs:
     needs: test
     runs-on: ubuntu-latest
     env:
-      GITHUB_USER:  "tomzo"
+      GITHUB_USER:  "adnovum"
       GITHUB_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
     steps:
       - name: Harden the runner (Audit all outbound calls)

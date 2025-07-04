@@ -1289,16 +1289,7 @@ All commits to any branch are built by Github Actions. See `.github/workflows` f
 
 ## Release
 
-1. Adjust the version in the `build.gradle` and commit
-2. Create and push a `v<version>` (e.g. `v1.2.3`) tag.
-
-    ```shell
-    TAG=v1.2.3
-    git tag $TAG
-    git push origin $TAG
-    ```
-
-    Pushing the tag triggers the release stages of Github Actions. The release is automatically created and artifacts uploaded to it.
+Trigger the release workflow. Pick whether it's an experimental or proper release (NO/YES).
 
 ## Tests structure
 

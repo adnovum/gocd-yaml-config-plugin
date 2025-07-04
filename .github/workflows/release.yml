@@ -1,5 +1,8 @@
 # Controls when the action will run. Workflow runs when manually triggered using the UI
 # or API.
+
+name: Release
+
 on:
   workflow_dispatch:
     # Inputs the workflow accepts.
@@ -13,7 +16,7 @@ jobs:
   build_and_release:
     runs-on: ubuntu-latest
     env:
-      GITHUB_USER:  "tomzo"
+      GITHUB_USER:  "adnovum"
       GITHUB_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
       PRERELEASE:   "${{ github.event.inputs.prerelease }}"
     steps:

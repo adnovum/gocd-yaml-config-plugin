@@ -3,7 +3,7 @@ apply from: "https://raw.githubusercontent.com/gocd/gocd-plugin-gradle-task-help
 
 gocdPlugin {
     id = 'yaml.config.plugin'
-    pluginVersion = '1.0.0'
+    pluginVersion = '1.0.0-adn1'
     goCdVersion = '22.1.0'
     name = 'YAML Configuration Plugin (Adn)'
     description = 'GoCD pipelines and environments configuration in YAML. Patched for Adnovum.'
@@ -23,7 +23,7 @@ gocdPlugin {
 }
 
 group = 'cd.go.plugin.config.yaml'
-version = gocdPlugin.fullVersion(project) + '-adn.1'
+version = gocdPlugin.fullVersion(project)
 
 repositories {
     mavenCentral()

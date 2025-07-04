@@ -1,3 +1,13 @@
+### 0.14.2+
+
+Please see the [releases page](https://github.com/tomzo/gocd-yaml-config-plugin/releases) for changelogs.
+
+### 0.14.1 (2022-Sep-25)
+* Updated snakeyaml to a secure version
+
+### 0.14.0 (2022-Jul-31)
+* Upgrade all dependencies to latest, patched versions
+
 ### 0.13.2 (2020-Dec-09)
 
 * use newer openjdk Dojo image kudulab/openjdk-dojo:1.4.1

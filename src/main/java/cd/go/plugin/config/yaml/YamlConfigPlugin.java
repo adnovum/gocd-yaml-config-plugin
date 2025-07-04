@@ -8,23 +8,6 @@ import static cd.go.plugin.config.yaml.PluginSettings.PLUGIN_SETTINGS_DEFAULT_AU
 import static cd.go.plugin.config.yaml.PluginSettings.PLUGIN_SETTINGS_FILE_PATTERN;
 import static cd.go.plugin.config.yaml.PluginSettings.PLUGIN_SETTINGS_USE_APPROVAL_MANUAL_FOR_PRS;
 import static cd.go.plugin.config.yaml.PluginSettings.PLUGIN_SETTINGS_PR_MATERIAL_ID_PATTERN;
-import static com.thoughtworks.go.plugin.api.response.DefaultGoPluginApiResponse.SUCCESS_RESPONSE_CODE;
-import static com.thoughtworks.go.plugin.api.response.DefaultGoPluginApiResponse.badRequest;
-import static com.thoughtworks.go.plugin.api.response.DefaultGoPluginApiResponse.error;
-import static com.thoughtworks.go.plugin.api.response.DefaultGoPluginApiResponse.success;
-import static java.lang.String.format;
-
-import java.io.ByteArrayInputStream;
-import java.io.File;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Base64;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.function.Supplier;
 
 import cd.go.plugin.config.yaml.transforms.DefaultOverrides;
 import cd.go.plugin.config.yaml.transforms.RootTransform;
@@ -41,7 +24,19 @@ import com.thoughtworks.go.plugin.api.request.GoPluginApiRequest;
 import com.thoughtworks.go.plugin.api.response.DefaultGoPluginApiResponse;
 import com.thoughtworks.go.plugin.api.response.GoApiResponse;
 import com.thoughtworks.go.plugin.api.response.GoPluginApiResponse;
-import org.apache.commons.io.IOUtils;
+
+import java.io.ByteArrayInputStream;
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
+import java.util.*;
+import java.util.function.Supplier;
+
+import static cd.go.plugin.config.yaml.PluginSettings.DEFAULT_FILE_PATTERN;
+import static cd.go.plugin.config.yaml.PluginSettings.PLUGIN_SETTINGS_FILE_PATTERN;
+import static com.thoughtworks.go.plugin.api.response.DefaultGoPluginApiResponse.*;
+import static java.lang.String.format;
 
 @Extension
 public class YamlConfigPlugin implements GoPlugin, ConfigRepoMessages {
@@ -52,7 +47,7 @@ public class YamlConfigPlugin implements GoPlugin, ConfigRepoMessages {
 
     private static final String DISPLAY_NAME_PR_MATERIAL_ID_PATTERN = "Regex pattern to identify PR materials by their ID";
     private static final String PLUGIN_ID = "yaml.config.plugin.adn";
-    private static Logger LOGGER = Logger.getLoggerFor(YamlConfigPlugin.class);
+    private static final Logger LOGGER = Logger.getLoggerFor(YamlConfigPlugin.class);
 
     private final Gson gson = new Gson();
     private GoApplicationAccessor goApplicationAccessor;
@@ -111,12 +106,10 @@ public class YamlConfigPlugin implements GoPlugin, ConfigRepoMessages {
     }
 
     private GoPluginApiResponse handleGetIconRequest() {
-        try {
+        try (InputStream is = Objects.requireNonNull(getClass().getResourceAsStream("/yaml.svg"))) {
             JsonObject jsonObject = new JsonObject();
-            byte[] contents = IOUtils.toByteArray(getClass().getResourceAsStream("/yaml.svg"));
-
             jsonObject.addProperty("content_type", "image/svg+xml");
-            jsonObject.addProperty("data", Base64.getEncoder().encodeToString(contents));
+            jsonObject.addProperty("data", Base64.getEncoder().encodeToString(is.readAllBytes()));
             return success(gson.toJson(jsonObject));
         } catch (IOException e) {
             return error(e.getMessage());
@@ -147,11 +140,9 @@ public class YamlConfigPlugin implements GoPlugin, ConfigRepoMessages {
             ParsedRequest parsed = ParsedRequest.parse(request);
 
             YamlConfigParser parser = new YamlConfigParser();
-            Map<String, String> contents = parsed.getParam("contents");
+            Map<String, String> contents = parsed.getParam("contents", String.class);
             JsonConfigCollection result = new JsonConfigCollection();
-            contents.forEach((filename, content) -> {
-                parser.parseStream(result, new ByteArrayInputStream(content.getBytes()), filename);
-            });
+            contents.forEach((filename, content) -> parser.parseStream(result, new ByteArrayInputStream(content.getBytes()), filename));
             result.updateTargetVersionFromFiles();
 
             return success(gson.toJson(result.getJsonObject()));
@@ -162,7 +153,7 @@ public class YamlConfigPlugin implements GoPlugin, ConfigRepoMessages {
         return handlingErrors(() -> {
             ParsedRequest parsed = ParsedRequest.parse(request);
 
-            Map<String, Object> pipeline = parsed.getParam("pipeline");
+            Map<String, Object> pipeline = parsed.getParam("pipeline", Object.class);
             String name = (String) pipeline.get("name");
 
             Map<String, String> responseMap = Collections.singletonMap("pipeline", new RootTransform().inverseTransformPipeline(pipeline));
@@ -216,9 +207,11 @@ public class YamlConfigPlugin implements GoPlugin, ConfigRepoMessages {
     }
 
     private GoPluginApiResponse handleGetPluginSettingsView() throws IOException {
-        Map<String, Object> response = new HashMap<String, Object>();
-        response.put("template", IOUtils.toString(getClass().getResourceAsStream("/plugin-settings.template.html"), "UTF-8"));
-        return success(gson.toJson(response));
+        try (InputStream is = Objects.requireNonNull(getClass().getResourceAsStream("/plugin-settings.template.html"))) {
+            Map<String, Object> response = new HashMap<>();
+            response.put("template", new String(is.readAllBytes(), StandardCharsets.UTF_8));
+            return success(gson.toJson(response));
+        }
     }
 
     private GoPluginApiResponse handleValidatePluginSettingsConfiguration() {
@@ -239,7 +232,7 @@ public class YamlConfigPlugin implements GoPlugin, ConfigRepoMessages {
     }
 
     private Map<String, Object> createField(String displayName, String defaultValue, boolean isRequired, boolean isSecure, String displayOrder) {
-        Map<String, Object> fieldProperties = new HashMap<String, Object>();
+        Map<String, Object> fieldProperties = new HashMap<>();
         fieldProperties.put("display-name", displayName);
         fieldProperties.put("default-value", defaultValue);
         fieldProperties.put("required", isRequired);
@@ -262,7 +255,7 @@ public class YamlConfigPlugin implements GoPlugin, ConfigRepoMessages {
     }
 
     private PluginSettings fetchPluginSettings() {
-        Map<String, Object> requestMap = new HashMap<String, Object>();
+        Map<String, Object> requestMap = new HashMap<>();
         requestMap.put("plugin-id", PLUGIN_ID);
         GoApiResponse response = goApplicationAccessor.submit(createGoApiRequest(REQ_GET_PLUGIN_SETTINGS, JSONUtils.toJSON(requestMap)));
 

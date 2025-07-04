@@ -4,6 +4,8 @@ import com.google.gson.*;
 import com.google.gson.reflect.TypeToken;
 import com.thoughtworks.go.plugin.api.request.GoPluginApiRequest;
 
+import java.util.Map;
+
 import static java.lang.String.format;
 
 class ParsedRequest {
@@ -23,7 +25,6 @@ class ParsedRequest {
     }
 
     static ParsedRequest parse(GoPluginApiRequest req) {
-        JsonParser parser = new JsonParser();
         String requestBody = req.requestBody();
 
         if (null == requestBody || requestBody.trim().isEmpty()) {
@@ -32,7 +33,7 @@ class ParsedRequest {
 
         JsonElement parsed;
         try {
-            parsed = parser.parse(requestBody);
+            parsed = JsonParser.parseString(requestBody);
         } catch (JsonParseException e) {
             throw new RequestParseException(INVALID_JSON, e);
         }
@@ -69,7 +70,7 @@ class ParsedRequest {
         }
     }
 
-    <T> T getParam(String paramName) {
+    <V> Map<String, V> getParam(String paramName, Class<V> valueType) {
         try {
             JsonElement json = params.get(paramName);
 
@@ -77,7 +78,7 @@ class ParsedRequest {
                 throw new RequestParseException(format(MISSING_PARAM_MESSAGE, paramName, requestName));
             }
 
-            return GSON.fromJson(json, new TypeToken<T>() {}.getType());
+            return GSON.fromJson(json, TypeToken.getParameterized(Map.class, String.class, valueType).getType());
         } catch (Exception e) {
             throw new RequestParseException(format(PARAM_FAILED_TO_PARSE_TO_TYPE, paramName, requestName, e.getMessage()));
         }

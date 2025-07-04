@@ -4,18 +4,16 @@ import cd.go.plugin.config.yaml.JsonObjectMatcher;
 import cd.go.plugin.config.yaml.YamlUtils;
 import com.google.gson.JsonObject;
 import com.google.gson.internal.LinkedTreeMap;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
 import java.util.Map;
 
 import static cd.go.plugin.config.yaml.TestUtils.*;
-import static org.hamcrest.core.Is.is;
-import static org.junit.Assert.assertThat;
-import static org.mockito.Matchers.any;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
+import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.mockito.Mockito.*;
 
 public class PipelineTransformTest {
 
@@ -25,7 +23,7 @@ public class PipelineTransformTest {
     private EnvironmentVariablesTransform environmentTransform;
     private ParameterTransform parameterTransform;
 
-    @Before
+    @BeforeEach
     public void SetUp() {
         materialTransform = mock(MaterialTransform.class);
         stageTransform = mock(StageTransform.class);
@@ -68,7 +66,7 @@ public class PipelineTransformTest {
     public void shouldInverseTransformPipeline() throws IOException {
         Map<String, Object> materials = new LinkedTreeMap<>();
         materials.put("foo", new LinkedTreeMap<>());
-        when(materialTransform.inverseTransform(any(LinkedTreeMap.class))).thenReturn(materials);
+        when(materialTransform.inverseTransform(any())).thenReturn(materials);
 
         testInverseTransform("export.pipe");
     }
@@ -77,7 +75,7 @@ public class PipelineTransformTest {
     public void shouldInverseTransformAPipelineWhichHasADisplayOrderWeight() throws IOException {
         Map<String, Object> materials = new LinkedTreeMap<>();
         materials.put("foo", new LinkedTreeMap<>());
-        when(materialTransform.inverseTransform(any(LinkedTreeMap.class))).thenReturn(materials);
+        when(materialTransform.inverseTransform(any())).thenReturn(materials);
 
         testInverseTransform("display_order.pipe");
     }
@@ -88,7 +86,7 @@ public class PipelineTransformTest {
 
         Map<String, Object> pipeline = parser.inverseTransform(readJsonGson("parts/pipeline_with_multiple_materials.json"));
 
-        assertThat(((Map)((Map)pipeline.get("pipe1")).get("materials")).size(), is(2));
+        assertThat(((Map<?, ?>)((Map<?, ?>)pipeline.get("pipe1")).get("materials")).size(), is(2));
     }
 
     private void testTransform(String caseFile) throws IOException {

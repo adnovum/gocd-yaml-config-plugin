@@ -6,7 +6,7 @@ import static cd.go.plugin.config.yaml.TestUtils.readJsonGson;
 import static cd.go.plugin.config.yaml.TestUtils.readJsonObject;
 import static cd.go.plugin.config.yaml.TestUtils.readYamlObject;
 import static org.hamcrest.core.Is.is;
-import static org.junit.Assert.assertThat;
+import static org.hamcrest.MatcherAssert.assertThat;
 
 import java.io.IOException;
 import java.util.Map;
@@ -14,15 +14,15 @@ import java.util.Map;
 import cd.go.plugin.config.yaml.JsonObjectMatcher;
 import cd.go.plugin.config.yaml.YamlUtils;
 import com.google.gson.JsonObject;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 public class PipelineTransformIntegrationTest {
 
     private PipelineTransform parser;
 
-    @Before
+    @BeforeEach
     public void setUp() {
         EnvironmentVariablesTransform environmentTransform = new EnvironmentVariablesTransform();
 
@@ -33,7 +33,7 @@ public class PipelineTransformIntegrationTest {
                 new ParameterTransform());
     }
 
-    @After
+    @AfterEach
     public void cleanUp() {
         DefaultOverrides.setUseApprovalManualForPRs(false);
         DefaultOverrides.setPrMaterialIdPattern(null);

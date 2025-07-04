@@ -46,7 +46,7 @@ public class MaterialTransform extends ConfigurationTransform {
     private static final String YAML_MATERIAL_USE_TICKETS_FIELD = "use_tickets";
     private static final String YAML_MATERIAL_SCM_PLUGIN_CONFIG_FIELD = "plugin_configuration";
 
-    private final HashSet<String> yamlSpecialKeywords = new HashSet<String>();
+    private final HashSet<String> yamlSpecialKeywords = new HashSet<>();
 
     public MaterialTransform() {
         yamlSpecialKeywords.add(YAML_SHORT_KEYWORD_GIT);
@@ -131,7 +131,7 @@ public class MaterialTransform extends ConfigurationTransform {
             if (yamlSpecialKeywords.contains(materialProp.getKey()))
                 continue;
             if (materialProp.getValue() instanceof String)
-                materialdata.put(materialProp.getKey(), (String) materialProp.getValue());
+                materialdata.put(materialProp.getKey(), materialProp.getValue());
         }
 
         if (materialName == null) {
